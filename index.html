@@ -1,0 +1,45 @@
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ethers } from "ethers";
+
+const CONTRACT_ADDRESS = "0x4248AeC219dfCfa283c8279086133e0e12052e21";
+const ABI = [
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)"
+];
+
+export default function Home() {
+  const [account, setAccount] = useState(null);
+  const [balance, setBalance] = useState("0");
+
+  async function connectWallet() {
+    if (window.ethereum) {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setAccount(address);
+
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+      const bal = await contract.balanceOf(address);
+      setBalance(ethers.formatUnits(bal, 18));
+    } else {
+      alert("Please install MetaMask");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
+      <h1 className="text-4xl font-bold mb-6">USDT Mining Dashboard</h1>
+      <Card className="w-full max-w-md">
+        <CardContent className="space-y-4">
+          <div className="text-xl">Wallet: {account || "Not Connected"}</div>
+          <div className="text-xl">USDT Balance: {balance}</div>
+          <Button onClick={connectWallet}>Connect MetaMask</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
